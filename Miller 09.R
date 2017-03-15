@@ -12,10 +12,14 @@ print(dim(Groceries))
 print(dim(Groceries)[1])  # 9835 market baskets for shopping trips
 print(dim(Groceries)[2])  # 169 initial store items  
 
-# examine frequency for each item with support greater than 0.025
+#identify "dairy produce
+df=data.frame(itemInfo(Groceries))
+print(df$labels[df['level2']=='dairy produce'])
+
+# examine frequency for each item with support greater than 0.0343
 pdf(file="fig_market_basket_initial_item_support.pdf", 
     width = 8.5, height = 11)
-itemFrequencyPlot(Groceries, support = 0.025, cex.names=0.8, xlim = c(0,0.3),
+itemFrequencyPlot(Groceries, support = 0.0343, cex.names=0.8, xlim = c(0,0.3),
                   type = "relative", horiz = TRUE, col = "dark red", las = 1,
                   xlab = paste("Proportion of Market Baskets Containing Item",
                                "\n(Item Relative Frequency or Support)"))
@@ -34,7 +38,7 @@ print(dim(groceries)[1])  # 9835 market baskets for shopping trips
 print(dim(groceries)[2])  # 55 final store items (categories)  
 
 pdf(file="fig_market_basket_final_item_support.pdf", width = 8.5, height = 11)
-itemFrequencyPlot(groceries, support = 0.025, cex.names=1.0, xlim = c(0,0.5),
+itemFrequencyPlot(groceries, support = 0.0343, cex.names=1.0, xlim = c(0,0.5),
                   type = "relative", horiz = TRUE, col = "blue", las = 1,
                   xlab = paste("Proportion of Market Baskets Containing Item",
                                "\n(Item Relative Frequency or Support)"))
@@ -51,29 +55,39 @@ second.rules <- apriori(groceries,
                         parameter = list(support = 0.025, confidence = 0.05))
 print(summary(second.rules))  # yields 344 rules
 
+# find cutoff of support to yeild 200 rules
+third.rules <- apriori(groceries, 
+                        parameter = list(support = 0.0343, confidence = 0.05))
+print(summary(third.rules))
+
+# change the confidence from 0.05 to 0.01
+forth.rules <- apriori(groceries, 
+                       parameter = list(support = 0.0343, confidence = 0.01))
+print(summary(forth.rules))
+
 # data visualization of association rules in scatter plot
 pdf(file="fig_market_basket_rules.pdf", width = 8.5, height = 8.5)
-plot(second.rules, 
+plot(third.rules, 
      control=list(jitter=2, col = rev(brewer.pal(9, "Greens")[4:9])),
      shading = "lift")   
 dev.off()    
 
 # grouped matrix of rules 
 pdf(file="fig_market_basket_rules_matrix.pdf", width = 8.5, height = 8.5)
-plot(second.rules, method="grouped",   
+plot(third.rules, method="grouped",   
      control=list(col = rev(brewer.pal(9, "Greens")[4:9])))
 dev.off()    
 
-# select rules with vegetables in consequent (right-hand-side) item subsets
-vegie.rules <- subset(second.rules, subset = rhs %pin% "vegetables")
-inspect(vegie.rules)  # 41 rules
+# select rules with dairy produce in consequent (right-hand-side) item subsets
+dairy.rules <- subset(third.rules, subset = rhs %pin% "dairy produce")
+inspect(dairy.rules)  
 
 # sort by lift and identify the top 10 rules
-top.vegie.rules <- head(sort(vegie.rules, decreasing = TRUE, by = "lift"), 10)
-inspect(top.vegie.rules) 
+top.dairy.rules <- head(sort(dairy.rules, decreasing = TRUE, by = "lift"), 10)
+inspect(top.dairy.rules) 
 
-pdf(file="fig_market_basket_farmer_rules.pdf", width = 11, height = 8.5)
-plot(top.vegie.rules, method="graph", 
+pdf(file="fig_market_basket_dairy_rules.pdf", width = 11, height = 8.5)
+plot(top.dairy.rules, method="graph", 
      control=list(type="items"), 
      shading = "lift")
 dev.off()  
